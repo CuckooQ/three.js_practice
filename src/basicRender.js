@@ -52,12 +52,14 @@ export const renderView = () => {
 		color: '#ff0000'
 	})
 	let material = standardMaterial
-	// const mesh = new THREE.Mesh(geometry, material)
+	const mesh = new THREE.Mesh(geometry, material)
 	const meshes = Array.from({length: 10},() => {
-		const mesh = new THREE.Mesh(geometry, material)
-		mesh.position.set(Math.random() * 5 - 2.5, 0, Math.random() * 5 - 2.5)
-		return mesh
+		const tempMesh = mesh.clone()
+		tempMesh.position.set(Math.random() * 5 - 2.5, 0, Math.random() * 5 - 2.5)
+		return tempMesh
 	})
+	const meshGroup = new THREE.Group()
+	meshGroup.add(...meshes)
 
 	/* 씬 설정 */
 	const scene = new THREE.Scene()
@@ -69,7 +71,7 @@ export const renderView = () => {
 	scene.add(axesHelper)
 	scene.add(gridHeler)
 	// scene.add(mesh)
-	meshes.forEach((mesh) => scene.add(mesh))
+	scene.add(meshGroup)
 
 	/* 렌더러 설정 */
 	const renderer = new THREE.WebGLRenderer({ 
@@ -101,25 +103,27 @@ export const renderView = () => {
 	const clock = new THREE.Clock()
 	// const elapsedTime = clock.getElapsedTime() // 경과시간
 	// const delta = clock.getDelta() // 시간차
-	function upAndDown(mesh) {
-		if (mesh.position.y > 2) {
+	function upAndDown() {
+		if (meshGroup.position.y > 2) {
 			direction = Y_DIRECTION.DOWN
 		}
-		if (mesh.position.y < 0) {
+		if (meshGroup.position.y < 0) {
 			direction = Y_DIRECTION.UP
 		}
-		mesh.position.y += (direction === Y_DIRECTION.UP ? 0.01 : -1 * 0.01)
+		meshGroup.position.y += (direction === Y_DIRECTION.UP ? 0.01 : -1 * 0.01)
 	}
-	function rotate(mesh) {
-		// mesh.rotation.y += 0.01 // radian 단위
-		// mesh.rotation.y += THREE.MathUtils.degToRad(1) // deg 단위
-		mesh.rotation.y = clock.getElapsedTime() 
+	function rotate() {
+		const elapsedTime = clock.getElapsedTime()
+		meshGroup.children.forEach((mesh) => {
+			mesh.rotation.reorder('XYZ') // 각 축을 독립적으로 재설정
+			// mesh.rotation.y += 0.01 // radian 단위
+			// mesh.rotation.y += THREE.MathUtils.degToRad(1) // deg 단위
+			mesh.rotation.set(elapsedTime , elapsedTime , elapsedTime)
+		})
 	}
 	function repeatAnimation() {
-		meshes.forEach((mesh) => {
-			upAndDown(mesh)
-			rotate(mesh)
-		})
+		upAndDown()
+		rotate()
 		camera.lookAt(0, 0, 0)
 		renderer.render(scene, camera)
 		window.requestAnimationFrame(repeatAnimation) // 실행할 애니메이션 함수 안에 requestAnimationFrame함수를 호출함으로써 반복 동작 구현
