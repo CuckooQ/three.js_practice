@@ -1,4 +1,12 @@
 import * as THREE from 'three'
+import { ArcballControls } from 'three/examples/jsm/controls/ArcballControls'
+import { DragControls } from 'three/examples/jsm/controls/DragControls'
+import { FirstPersonControls } from 'three/examples/jsm/controls/FirstPersonControls'
+import { FlyControls } from 'three/examples/jsm/controls/FlyControls'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls'
+import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls'
+import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
 import Stats from 'stats.js'
 import Dat from 'dat.gui'
 
@@ -45,11 +53,13 @@ export const renderView = () => {
 	const geometry = new THREE.BoxGeometry(1, 1, 1)
 	// 빛의 영향을 받지 않는 기본 재질
 	const basicMaterial = new THREE.MeshBasicMaterial({
-		color: '#ff0000'
+		color: '#ff0000',
+		wireframe: false,
 	})
 	// 빛의 영향을 받는 기본 재질
 	const standardMaterial = new THREE.MeshStandardMaterial({
-		color: '#ff0000'
+		color: '#ff0000',
+		wireframe: false,
 	})
 	let material = standardMaterial
 	const mesh = new THREE.Mesh(geometry, material)
@@ -98,6 +108,40 @@ export const renderView = () => {
 	const stats = new Stats()
 	document.body.append(stats.domElement)
 
+	/* 카메라 컨트롤 설정 */
+	// const arcballControls = new ArcballControls( camera, renderer.domElement, scene )
+	// const dragControls = new DragControls( meshes, camera, renderer.domElement )
+	// const firstPersonControls = new FirstPersonControls( camera, renderer.domElement  )
+	// const flyControls = new FlyControls( camera, renderer.domElement )
+	const orbitControls = new OrbitControls( camera, renderer.domElement )
+	// const pointerLockControls = new PointerLockControls( camera, document.body )
+	// const trackballControls = new TrackballControls( camera, renderer.domElement )
+	// const transformControls = new TransformControls( camera, renderer.domElement )
+	const controls = orbitControls
+	if (controls instanceof PointerLockControls) {
+		const onKeyDown = function (event) {
+			switch (event.code) {
+					case 'KeyW':
+							controls.moveForward(0.25)
+							break
+					case 'KeyA':
+							controls.moveRight(-0.25)
+							break
+					case 'KeyS':
+							controls.moveForward(-0.25)
+							break
+					case 'KeyD':
+							controls.moveRight(0.25)
+							break
+			}
+		}
+		document.addEventListener('keydown', onKeyDown, false)
+	}
+	if (controls instanceof TransformControls) {
+		controls.attach(meshes[0])
+		scene.add(controls)
+	}
+
 	/* 애니메이션 설정 */
 	let direction = Y_DIRECTION.UP
 	const clock = new THREE.Clock()
@@ -128,6 +172,9 @@ export const renderView = () => {
 		renderer.render(scene, camera)
 		window.requestAnimationFrame(repeatAnimation) // 실행할 애니메이션 함수 안에 requestAnimationFrame함수를 호출함으로써 반복 동작 구현
 		stats.update() // FPS 업데이트
+		if (!(controls instanceof PointerLockControls) && !(controls instanceof TransformControls) ) {
+			controls.update(1)
+		}
 	}
 	function initAnimation() {
 		repeatAnimation()
