@@ -111,32 +111,52 @@ export const renderView = () => {
 	/* 카메라 컨트롤 설정 */
 	// const arcballControls = new ArcballControls( camera, renderer.domElement, scene )
 	// const dragControls = new DragControls( meshes, camera, renderer.domElement )
-	// const firstPersonControls = new FirstPersonControls( camera, renderer.domElement  )
-	// const flyControls = new FlyControls( camera, renderer.domElement )
+	/*
+	const firstPersonControls = new FirstPersonControls( camera, renderer.domElement )
+	firstPersonControls.lookSpeed = 0.5
+	firstPersonControls.movementSpeed = 0.3
+	firstPersonControls.activeLook = false
+	*/
+	/*
+	const flyControls = new FlyControls( camera, renderer.domElement )
+	flyControls.rollSpeed = 0.5
+	flyControls.movementSpeed = 0.3
+	flyControls.dragToLook = true
+	*/
 	const orbitControls = new OrbitControls( camera, renderer.domElement )
-	// const pointerLockControls = new PointerLockControls( camera, document.body )
-	// const trackballControls = new TrackballControls( camera, renderer.domElement )
+	orbitControls.enableDamping = true
+	orbitControls.enableZoom = true
+	orbitControls.maxDistance = 7
+	orbitControls.minDistance = 5
+	orbitControls.maxPolarAngle = THREE.MathUtils.degToRad(135)
+	orbitControls.minPolarAngle = THREE.MathUtils.degToRad(45)
+	orbitControls.autoRotate = true
+	orbitControls.autoRotateSpeed = 1
+	/*
+	const pointerLockControls = new PointerLockControls( camera, document.body )
+	const keyControllerForPointerLockControls = new KeyController()
+	function move() {
+		if(keyControllerForPointerLockControls.keys['KeyW']) {
+			controls.moveForward(0.5)
+		}
+		if(keyControllerForPointerLockControls.keys['KeyA']) {
+			controls.moveRight(-0.5)
+		}
+		if(keyControllerForPointerLockControls.keys['KeyS']) {
+			controls.moveForward(-0.5)
+		}
+		if(keyControllerForPointerLockControls.keys['KeyD']) {
+			controls.moveRight(0.5)
+		}
+	}
+	*/
+	/*
+	const trackballControls = new TrackballControls( camera, renderer.domElement )
+	trackballControls.maxDistance = 7
+	trackballControls.minDistance = 5
+	*/
 	// const transformControls = new TransformControls( camera, renderer.domElement )
 	const controls = orbitControls
-	if (controls instanceof PointerLockControls) {
-		const onKeyDown = function (event) {
-			switch (event.code) {
-					case 'KeyW':
-							controls.moveForward(0.25)
-							break
-					case 'KeyA':
-							controls.moveRight(-0.25)
-							break
-					case 'KeyS':
-							controls.moveForward(-0.25)
-							break
-					case 'KeyD':
-							controls.moveRight(0.25)
-							break
-			}
-		}
-		document.addEventListener('keydown', onKeyDown, false)
-	}
 	if (controls instanceof TransformControls) {
 		controls.attach(meshes[0])
 		scene.add(controls)
@@ -168,12 +188,16 @@ export const renderView = () => {
 	function repeatAnimation() {
 		upAndDown()
 		rotate()
+	
 		camera.lookAt(0, 0, 0)
 		renderer.render(scene, camera)
 		window.requestAnimationFrame(repeatAnimation) // 실행할 애니메이션 함수 안에 requestAnimationFrame함수를 호출함으로써 반복 동작 구현
 		stats.update() // FPS 업데이트
-		if (!(controls instanceof PointerLockControls) && !(controls instanceof TransformControls) ) {
+		if (!(controls instanceof DragControls) && !(controls instanceof PointerLockControls) && !(controls instanceof TransformControls)) {
 			controls.update(1)
+		}
+		if(controls instanceof PointerLockControls) {
+			move()
 		}
 	}
 	function initAnimation() {
@@ -193,3 +217,16 @@ const Y_DIRECTION = {
 	DOWN: -1
 }
 const BACGROUND_COLOR = "#fff"
+
+/* 클래스 */
+class KeyController {
+	constructor() {
+		this.keys = new Map()
+		window.addEventListener('keydown', (e) => {
+			this.keys[e.code] = true
+		})
+		window.addEventListener('keyup', (e) => {
+			this.keys[e.code] = false
+		})
+	}
+}
