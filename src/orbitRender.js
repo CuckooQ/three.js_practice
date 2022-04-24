@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import Stats from 'stats.js'
 import Dat from 'dat.gui'
 
@@ -28,16 +29,27 @@ export const renderView = () => {
 	const gridHeler = new THREE.GridHelper(10) // length
 
 	/* 메쉬 설정 */
-  const geometry = new THREE.SphereGeometry()
-  function getSphereMesh(color, size) {
-    const material = new THREE.MeshStandardMaterial({color})
+	function getPlanetGeometry(segmentCount) {
+		const geometry = new THREE.SphereGeometry(1, segmentCount, segmentCount)
+		const geometryPositionArray = geometry.attributes.position.array
+		for (let i = 0; i < geometryPositionArray.length; i += 3) {
+			geometryPositionArray[i] += (Math.random() - 0.5) * 0.05
+			geometryPositionArray[i + 1] += (Math.random() - 0.5) * 0.05
+			geometryPositionArray[i + 2] += (Math.random() - 0.5) * 0.05
+		}
+		return geometry
+	}
+	function getPlanetMesh(color, size) {
+    const material = new THREE.MeshStandardMaterial({ color, flatShading: true, side: THREE.DoubleSide })
     const mesh =  new THREE.Mesh(geometry, material)
     mesh.scale.set(size, size, size)
     return mesh
   }
-  const sunMesh = getSphereMesh('orange', 2)
-  const earthMesh = getSphereMesh('blue', 0.3)
-  const moonMesh = getSphereMesh('gray', 0.15)
+  const geometry = getPlanetGeometry(64)
+	const geometryPositionArray = geometry.attributes.position.array
+  const sunMesh = getPlanetMesh('orange', 2)
+  const earthMesh = getPlanetMesh('blue', 0.3)
+  const moonMesh = getPlanetMesh('gray', 0.15)
   const rotationMeshGroup = new THREE.Group()
   rotationMeshGroup.position.set(0, 0, 0)
   const innerRotationMeshGroup = new THREE.Group()
@@ -79,6 +91,9 @@ export const renderView = () => {
 	const stats = new Stats()
 	document.body.append(stats.domElement)
 
+	/* 카메라 컨트롤 설정*/
+	const controls = new OrbitControls(camera, renderer.domElement)
+
 	/* 애니메이션 설정 */
 	const clock = new THREE.Clock()
 	function rotate() {
@@ -87,8 +102,18 @@ export const renderView = () => {
     innerRotationMeshGroup.rotation.y += delta
 		moonMesh.rotation.y += delta
   }
+	function splash() {
+		const elapsedTime = clock.getElapsedTime()
+		for(let i = 0; i < geometryPositionArray.length; i += 3) {
+			geometryPositionArray[i] += Math.sin(elapsedTime + (Math.random() - 0.5) * 100) * 0.001
+			geometryPositionArray[i + 1] += Math.sin(elapsedTime + (Math.random() - 0.5) * 100) * 0.001
+			geometryPositionArray[i + 2] += Math.sin(elapsedTime + (Math.random() - 0.5) * 100) * 0.001
+		}
+		geometry.attributes.position.needsUpdate = true
+	}
 	function repeatAnimation() {
 		rotate()
+		splash()
     camera.lookAt(0, 0, 0)
 		renderer.render(scene, camera)
 		window.requestAnimationFrame(repeatAnimation) // 실행할 애니메이션 함수 안에 requestAnimationFrame함수를 호출함으로써 반복 동작 구현
