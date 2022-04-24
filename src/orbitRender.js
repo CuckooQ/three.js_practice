@@ -93,6 +93,7 @@ export const renderView = () => {
 
 	/* 카메라 컨트롤 설정*/
 	const controls = new OrbitControls(camera, renderer.domElement)
+	controls.enableDamping = true
 
 	/* 애니메이션 설정 */
 	const clock = new THREE.Clock()
@@ -118,6 +119,7 @@ export const renderView = () => {
 		renderer.render(scene, camera)
 		window.requestAnimationFrame(repeatAnimation) // 실행할 애니메이션 함수 안에 requestAnimationFrame함수를 호출함으로써 반복 동작 구현
 		stats.update() // FPS 업데이트
+		controls.update()
 	}
 	function initAnimation() {
 		repeatAnimation()
